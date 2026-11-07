@@ -6,8 +6,15 @@ HOST_NAME=${HOST_NAME=openstick-debian}
 
 rm -rf ${CHROOT}
 
+# current Debian archive keys (the runner's debian-archive-keyring is too old for trixie)
+apt-get install -y gnupg wget
+wget -O /tmp/archive-key-13.asc https://ftp-master.debian.org/keys/archive-key-13.asc
+wget -O /tmp/release-13.asc https://ftp-master.debian.org/keys/release-13.asc
+cat /tmp/archive-key-13.asc /tmp/release-13.asc | gpg --dearmor > /usr/share/keyrings/debian-new.gpg
+gpg --show-keys /tmp/archive-key-13.asc        # prints the fingerprint into the log, compare it with ftp-master.debian.org/keys.html
+
 debootstrap --foreign --arch arm64 \
-    --keyring /usr/share/keyrings/debian-archive-keyring.gpg ${RELEASE} ${CHROOT}
+    --keyring /usr/share/keyrings/debian-new.gpg ${RELEASE} ${CHROOT}
 
 cp $(which qemu-aarch64-static) ${CHROOT}/usr/bin
 
